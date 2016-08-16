@@ -16,7 +16,7 @@ Prerequisites
 
 LogParser requires the following software packages:
 
-  * Python    - Currently Python 2.7, but support for Python 3.x is expected shortly
+  * Python    - Either Python 2.7 or 3.x (currently tested on 2.7 and 3.5)
   * Qt4       - Qt4 shared libraries
   * PyQt4     - Python bindings for Qt4
 
@@ -45,7 +45,12 @@ You can also pass it a filename to open on the command line:
 Screenshot
 ----------  
 
-TODO: Add screenshot
+The following screenshot shows this README.md file with a "LogParser" inclusion
+filter and a "screenshot" exclusion filter. Inclusion filters are displayed in the right
+pane in green, while exclusion filters are displayed in red.
+
+[![Screenshot](screenshots/logparser-thumb.png)](screenshots/logparser.png)
+
 
 
 Goals
