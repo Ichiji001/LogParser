@@ -72,7 +72,7 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
                         if group[0] != item:
                             childText = str(item.text())[3:]
                             if childText in self.parent.fileData[currentLineInFile]:
-                                if item.foreground.color().green() == 255:
+                                if item.foreground().color().green() == 255:
                                     filterIncludeTrigger = True
                                     continue
                                 else:
@@ -152,7 +152,7 @@ class LogParser(QtGui.QMainWindow):
                 self.fileDisplayUI_ApplyFilters()
             return True
 
-        elif event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.key_Tab:
+        elif event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Tab:
             if self.filterDisplayUI.hasFocus() == False:
                 self.filterInputUI.setFocus()
             return True
@@ -281,6 +281,8 @@ class LogParser(QtGui.QMainWindow):
 
         if event.key() == QtCore.Qt.Key_Space:
             self.filterDisplayUI_toggleFilterMode()
+
+        self.filterInputUI.setFocus()
 
 
     def initComponentsUI(self):
