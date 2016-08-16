@@ -246,7 +246,7 @@ class LogParser(QtGui.QMainWindow):
             groupCopy = []
             for item in group:
                 groupCopy.append(item.clone())
-                filterGroupsCopy.append(groupCopy)
+            filterGroupsCopy.append(groupCopy)
 
         self.filterDisplayUI.clear()
         self.filterGroups = filterGroupsCopy
@@ -283,6 +283,7 @@ class LogParser(QtGui.QMainWindow):
         if event.matches(QtGui.QKeySequence.Delete):
             itemsToDelete = []
             groupToDelete = None
+            selectedItem = None
             for selectedItem in self.filterDisplayUI.selectedItems():
                 for group in self.filterGroups:
                     if selectedItem in group:
@@ -301,8 +302,9 @@ class LogParser(QtGui.QMainWindow):
             if groupToDelete != None:
                 self.filterGroups.remove(groupToDelete)
 
-            self.filterDisplayUI.setItemSelected(selectedItem, False)
-            self.fileDisplayUI_ApplyFilters()
+            if selectedItem != None:
+                self.filterDisplayUI.setItemSelected(selectedItem, False)
+                self.fileDisplayUI_ApplyFilters()
 
         if event.key() == QtCore.Qt.Key_Space:
             self.filterDisplayUI_toggleFilterMode()
