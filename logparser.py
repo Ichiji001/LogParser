@@ -1,6 +1,31 @@
 #!/usr/bin/env python
-"""
-TODO: Add comments
+""" logparser.py - PyQt graphical log parser
+
+This is an easy-to-use tool which combines the advantages of *less* and *grep* in a fashion which doesn't require the
+ user to understand regular expressions.
+
+Useage:
+    python logparser.py [filename.txt]
+
+    To load a file either pass the name in as an argument on the command line or drag and drop any file within the
+    bounds of the file output display.
+
+    Below the file output display there is a spot to type strings to filter for.  The enter key will apply the filter.
+    All existing filters are displayed to the far right.
+
+Filters:
+    Green filters include all lines that contain the filter string.  Multiple green filters are treated as ORs.  Both
+    filters do not need to exist on the same line.
+
+    Red filters take priority over green filters.  Red filters wil lexclude any line that contains the filter string.
+
+    Toggle filters from red to green or vice versa by double-clicing with the mouse or by selecting with mouse and
+    pressing <Space>.
+
+    Delete filters by selecting with mouse and pressing <Delete>.
+
+    To create an AND filter, click on an existing filter and then type in a new filter.  The ANDed filter shoudl appear
+    indented under the filter that was clicked on.
 """
 import os
 import sys
