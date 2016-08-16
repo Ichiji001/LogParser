@@ -143,7 +143,7 @@ class LogParser(QtGui.QMainWindow):
             event.accept()
             return True
 
-        elif event.type() == QtCore.QEvent.Drop and source is self.filterDisplayUI:
+        elif event.type() == QtCore.QEvent.Drop and source is self.fileDisplayUI:
             if event.mimeData().hasUrls:
                 droppath = str(event.mimeData().urls().pop().toLocalFile())
                 with open(droppath, 'r') as f:
