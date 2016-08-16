@@ -49,10 +49,10 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
         currentLineInFile = -1
 
         while numMatches < self.parent.maxMatches:
-            if self.running == False:
+            if not self.running:
                 break
 
-            currentLineInFile = currentLineInFile + 1
+            currentLineInFile += 1
             filterOmitTrigger = False
             filterIncludeTrigger = False
             includeFilterExists = False
@@ -63,7 +63,7 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
 
             if len(self.parent.fileData) > currentLineInFile:
 
-                if self.parent.newLineMode == False:
+                if not self.parent.newLineMode:
                     if self.parent.fileData[currentLineInFile] == '':
                         continue
 
@@ -76,10 +76,10 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
                             filterOmitTrigger = True
                             break
 
-                if filterOmitTrigger == True:
+                if filterOmitTrigger:
                     continue
 
-                if filterIncludeTrigger == False and includeFilterExists == True:
+                if includeFilterExists and not filterIncludeTrigger:
                     continue
 
                 for group in self.parent.filterGroups:
@@ -104,20 +104,20 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
                                     filterOmitTrigger = True
                                     break
 
-                    if filterOmitTrigger == True:
+                    if filterOmitTrigger:
                         break
 
-                    if filterIncludeTrigger == False and includeFilterExists == True:
+                    if includeFilterExists and not filterIncludeTrigger:
                         break
 
-                if filterOmitTrigger == True:
+                if filterOmitTrigger:
                     continue
 
-                if filterIncludeTrigger == False and includeFilterExists == True:
+                if includeFilterExists and not filterIncludeTrigger:
                     continue
 
                 display = display + self.parent.fileData[currentLineInFile] + '\n'
-                numMatches = numMatches + 1
+                numMatches += 1
 
                 self.emit(self.signal, display)
 
@@ -137,7 +137,6 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
 
 
 class LogParser(QtGui.QMainWindow):
-
     def __init__(self, fname=None):
         super(LogParser, self).__init__()
 
@@ -162,7 +161,6 @@ class LogParser(QtGui.QMainWindow):
             self.fileData = self.fileData.split('\n')
             self.fileDisplayUI_ApplyFilters()
 
-
     def eventFilter(self, source, event):
         if event.type() == QtCore.QEvent.DragEnter and source is self.fileDisplayUI:
             event.accept()
@@ -178,13 +176,12 @@ class LogParser(QtGui.QMainWindow):
             return True
 
         elif event.type() == QtCore.QEvent.KeyPress and event.key() == QtCore.Qt.Key_Tab:
-            if self.filterDisplayUI.hasFocus() == False:
+            if not self.filterDisplayUI.hasFocus():
                 self.filterInputUI.setFocus()
             return True
 
         else:
             return super(LogParser, self).eventFilter(source, event)
-
 
     def fileDisplayUI_BufferScroll(self):
         maximumValue = float(self.fileDisplayUI.verticalScrollBar().maximum())
@@ -199,14 +196,13 @@ class LogParser(QtGui.QMainWindow):
         if percentScrolled > .75:
             if self.pageNumber * self.maxMatches < len(self.fileData):
                 print('add')
-                self.pageNumber = self.pageNumber + 1
+                self.pageNumber += 1
                 self.fileDisplayUI_ApplyFilters()
         elif percentScrolled < .01 and False:
             if self.pageNumber > 0:
                 print('sub')
-                self.pageNumber = self.pageNumber - 1
+                self.pageNumber -= 1
                 self.fileDisplayUI_ApplyFilters()
-
 
     def filterDisplayUI_addNewFilter(self):
         filterInput = self.filterInputUI.text()
@@ -257,7 +253,6 @@ class LogParser(QtGui.QMainWindow):
 
         self.fileDisplayUI_ApplyFilters()
 
-
     def filterDisplayUI_toggleFilterMode(self):
         for selectedItem in self.filterDisplayUI.selectedItems():
             if selectedItem.foreground().color().red() == 255:
@@ -268,16 +263,13 @@ class LogParser(QtGui.QMainWindow):
             self.filterDisplayUI.setItemSelected(selectedItem, False)
             self.fileDisplayUI_ApplyFilters()
 
-
     def filterDisplayUI_mousePressedEvent(self, event):
         self.filterDisplayUI.clearSelection()
         super(QtGui.QListWidget, self.filterDisplayUI).mousePressEvent(event)
 
-
     def filterDisplayUI_mouseDoubleClickEvent(self, event):
         self.filterDisplayUI_toggleFilterMode()
         self.filterInputUI.setFocus()
-
 
     def filterDisplayUI_keyPressEvent(self, event):
         if event.matches(QtGui.QKeySequence.Delete):
@@ -299,10 +291,10 @@ class LogParser(QtGui.QMainWindow):
                     if itemToRemove in group:
                         group.remove(itemToRemove)
 
-            if groupToDelete != None:
+            if groupToDelete is not None:
                 self.filterGroups.remove(groupToDelete)
 
-            if selectedItem != None:
+            if selectedItem is not None:
                 self.filterDisplayUI.setItemSelected(selectedItem, False)
                 self.fileDisplayUI_ApplyFilters()
 
@@ -310,7 +302,6 @@ class LogParser(QtGui.QMainWindow):
             self.filterDisplayUI_toggleFilterMode()
 
         self.filterInputUI.setFocus()
-
 
     def initComponentsUI(self):
         self.fileDisplayUI = QtGui.QTextEdit('Drop a file here or use the command line')
@@ -349,7 +340,6 @@ class LogParser(QtGui.QMainWindow):
 
         self.upperSplitter.setSizes([1000, 100])
 
-
     def initGUIStructureUI(self):
         componentContainer = QtGui.QWidget()
         componentLayout = QtGui.QVBoxLayout()
@@ -376,11 +366,9 @@ class LogParser(QtGui.QMainWindow):
 
         self.centralVBox.addWidget(componentContainer)
 
-
     def toggleNewLineMode(self):
         self.newLineMode = not self.newLineMode
         self.fileDisplayUI_ApplyFilters()
-
 
     def initCentralWidgetUI(self):
         self.statusBar().showMessage('Ready')
@@ -410,18 +398,15 @@ class LogParser(QtGui.QMainWindow):
         centralWidget.setLayout(self.centralVBox)
         self.setCentralWidget(centralWidget)
 
-
     def fileDisplayUI_UpdateDisplay(self, displayText):
         self.fileDisplayUI.setText(displayText)
 
-
     def fileDisplayUI_ApplyFilters(self):
-        while self.applyFiltersThread.isRunning() == True:
+        while self.applyFiltersThread.isRunning():
             self.applyFiltersThread.running = False
 
         self.fileDisplayUI.setText('Filtering/Loading file...')
         self.applyFiltersThread.start()
-
 
     def initProgramVariables(self):
         self.newLineMode = True
