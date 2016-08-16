@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+"""
+TODO: Add comments
+"""
 import os
 import sys
 import threading
@@ -75,7 +79,7 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
                                     filterOmitTrigger = True
                                     break
 
-                    if filterOmiterTrigger == True:
+                    if filterOmitTrigger == True:
                         break
 
                     if filterIncludeTrigger == False and includeFilterExists == True:
@@ -165,16 +169,16 @@ class LogParser(QtGui.QMainWindow):
         if maximumValue > 0:
             percentScrolled = currentValue / maximumValue
 
-        print currentValue
+        print(currentValue)
 
         if percentScrolled > .75:
             if self.pageNumber * self.maxMatches < len(self.fileData):
-                print 'add'
+                print('add')
                 self.pageNumber = self.pageNumber + 1
                 self.fileDisplayUI_ApplyFilters()
         elif percentScrolled < .01 and False:
             if self.pageNumber > 0:
-                print 'sub'
+                print('sub')
                 self.pageNumber = self.pageNumber - 1
                 self.fileDisplayUI_ApplyFilters()
 
@@ -185,7 +189,7 @@ class LogParser(QtGui.QMainWindow):
         if str(filterInput).strip() == '':
             return
         items = []
-        for index in xrange(self.filterDisplayUI.count()):
+        for index in range(self.filterDisplayUI.count()):
             items.append(self.filterDisplayUI.item(index))
         labels = [i.text() for i in items]
 
