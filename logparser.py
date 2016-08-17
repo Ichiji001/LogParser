@@ -14,17 +14,19 @@ Useage:
     All existing filters are displayed to the far right.
 
 Filters:
-    Green filters include all lines that contain the filter string.  Multiple green filters are treated as ORs.  Both
-    filters do not need to exist on the same line.
+    By default green filters include all lines that contain the filter string.
+    By default red filters will exclude any line that contains the filter string.
 
-    Red filters take priority over green filters.  Red filters wil lexclude any line that contains the filter string.
+    Multiple green filters are treated as ORs.  Both filters do not need to exist on the same line.
 
-    Toggle filters from red to green or vice versa by double-clicing with the mouse or by selecting with mouse and
+    Red filters take priority over green filters.
+
+    Toggle filters from red to green or vice versa by double-clicking with the mouse or by selecting with mouse and
     pressing <Space>.
 
     Delete filters by selecting with mouse and pressing <Delete>.
 
-    To create an AND filter, click on an existing filter and then type in a new filter.  The ANDed filter shoudl appear
+    To create an AND filter, click on an existing filter and then type in a new filter.  The ANDed filter should appear
     indented under the filter that was clicked on.
 
 Incomplete features:
@@ -91,7 +93,7 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
 
             # For each parent filter, see if the text color is green, if so, an include filter exists
             for group in self.parent.filterGroups:
-                if group[0].foreground().color().green() == 255:
+                if group[0].getState() == LogParser_Filter.STATE_INCLUDE:
                     includeFilterExists = True
 
             # If our current line index for the fileData doesn't exceed the length of the file
@@ -106,8 +108,8 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
                 for group in self.parent.filterGroups:
                     # If the parent is in the current line
                     if str(group[0].text()) in self.parent.fileData[currentLineInFile]:
-                        # If the parent is a green inclusion filter
-                        if group[0].foreground().color().green() == 255:
+                        # If the parent is an inclusion filter
+                        if group[0].getState() == LogParser_Filter.STATE_INCLUDE:
                             filterIncludeTrigger = True
                             continue
                         else:
@@ -132,7 +134,7 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
                     # Determine if an include filter exists within this group
                     for item in group:
                         if group[0] != item:
-                            if item.foreground().color().green() == 255:
+                            if item.getState() == LogParser_Filter.STATE_INCLUDE:
                                 includeFilterExists = True
 
                     # Apply filters for each child
@@ -141,7 +143,7 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
                             childText = str(item.text())[3:]
                             if childText in self.parent.fileData[currentLineInFile]:
                                 # If the parent is a green inclusion filter
-                                if item.foreground().color().green() == 255:
+                                if item.getState() == LogParser_Filter.STATE_INCLUDE:
                                     filterIncludeTrigger = True
                                     continue
                                 else:
@@ -185,6 +187,44 @@ class LogParser_ApplyFilterThread(QtCore.QThread):
             self.running = True
             self.fileDisplayUI_ApplyFilters()
 
+class LogParser_Filter(QtGui.QListWidgetItem):
+    """
+    This class will hold relevant information regarding filters (e.x. filter states, filter colors)
+    """
+    # Possible states for a filter
+    STATE_OMIT, STATE_INCLUDE = range(2)
+
+    # Default color for omition filters: RED
+    filterOmitColor = QtGui.QColor(255, 0, 0)
+
+    # Default color for inclusive filters: GREEN
+    filterIncludeColor = QtGui.QColor(0, 255, 0)
+
+    # Default state for a filter
+    filterState = STATE_OMIT
+
+    def __init__(self):
+        super(QtGui.QListWidgetItem, self).__init__()
+
+    # Set the of the filter to be either
+    def setState(self, state):
+
+        self.filterState = state
+
+        if self.filterState == self.STATE_INCLUDE:
+            self.setForeground(self.filterIncludeColor)
+        else:
+            self.setForeground(self.filterOmitColor)
+
+    # If more attributes are added to this class, the clone method will need to be updated
+    def clone(self):
+        clone = super(LogParser_Filter, self).clone()
+        clone.__class__ = self.__class__
+        clone.filterState = self.filterState
+        return clone
+
+    def getState(self):
+        return self.filterState
 
 class LogParser(QtGui.QMainWindow):
     def __init__(self, fname=None):
@@ -296,8 +336,8 @@ class LogParser(QtGui.QMainWindow):
         items = []
         group = []
 
-        # Convert the filter string to a QListWidgetItem, and customize it
-        filterInputItem = QtGui.QListWidgetItem()
+        # Convert the filter string to a LogParser_Filter (QListWidgetItem), and customize it
+        filterInputItem = LogParser_Filter()
         filterInputItem.setForeground(QtGui.QColor(255, 0, 0))
         filterInputItem.setText(filterInput)
 
@@ -322,7 +362,8 @@ class LogParser(QtGui.QMainWindow):
         for group in self.filterGroups:
             groupCopy = []
             for item in group:
-                groupCopy.append(item.clone())
+                clone = item.clone()
+                groupCopy.append(clone)
             filterGroupsCopy.append(groupCopy)
 
         # Erase all items from display to ensure order of parent and children
@@ -341,12 +382,12 @@ class LogParser(QtGui.QMainWindow):
 
     def filterDisplayUI_toggleFilterMode(self):
         for selectedItem in self.filterDisplayUI.selectedItems():
-            if selectedItem.foreground().color().red() == 255:
-                selectedItem.setForeground(QtGui.QColor(0, 255, 0))
+            if selectedItem.getState() == LogParser_Filter.STATE_OMIT:
+                selectedItem.setState(LogParser_Filter.STATE_INCLUDE)
             else:
-                selectedItem.setForeground(QtGui.QColor(255, 0, 0))
+                selectedItem.setState(LogParser_Filter.STATE_OMIT)
 
-            self.filterDisplayUI.setItemSelected(selectedItem, False)
+            self.filterDisplayUI.clearSelection()
             self.fileDisplayUI_ApplyFilters()
 
     def filterDisplayUI_mousePressedEvent(self, event):
@@ -375,6 +416,7 @@ class LogParser(QtGui.QMainWindow):
 
             # For each selected item, remove it from the UI
             for selectedItem in self.filterDisplayUI.selectedItems():
+
                 # For each group in our list of groups
                 for group in self.filterGroups:
                     # If the item to delete is among this group
@@ -405,7 +447,7 @@ class LogParser(QtGui.QMainWindow):
 
             if selectedItem is not None:
                 # De-select the selected item
-                self.filterDisplayUI.setItemSelected(selectedItem, False)
+                self.filterDisplayUI.clearSelection()
 
                 # Update the file display with the new filter options
                 self.fileDisplayUI_ApplyFilters()
@@ -413,6 +455,7 @@ class LogParser(QtGui.QMainWindow):
         # Space key
         if event.key() == QtCore.Qt.Key_Space:
             self.filterDisplayUI_toggleFilterMode()
+
 
         self.filterInputUI.setFocus()
 
@@ -462,11 +505,11 @@ class LogParser(QtGui.QMainWindow):
 
     def initGUIStructureUI(self):
         """
-        Generally, to add widgets to the GUI, use the splitter.addWidget() function.
+        Generally, to add widgets to the GUI, use the splitter.addWidget() method.
         This can differ depending on the desired effect from the GUI.
 
         |-----------------------------------------------|
-        |componentContainer
+        |componentContainer                             |
         |  |-----------------------------------------|  |
         |  |componentLayout                          |  |
         |  |  |-----------------------------------|  |  |
@@ -580,7 +623,7 @@ class LogParser(QtGui.QMainWindow):
 
     def fileDisplayUI_ApplyFilters(self):
         """
-        This functoin can be called multiple times because when the thread reaches
+        This method can be called multiple times because when the thread reaches
         the end of it's run method, the isRunning flag becomes false automatically.
         """
         while self.applyFiltersThread.isRunning():
