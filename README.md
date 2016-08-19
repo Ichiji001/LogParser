@@ -56,9 +56,9 @@ pane in green, while exclusion filters are displayed in red.
 Goals
 -----
 
-    * Cross-platform (working on Windows, Mac OS X, and Linux)
-    * Easy to use (don't need to know regular expressions)
-    * Work with any log file (not specific to any format)
+* Cross-platform (working on Windows, Mac OS X, and Linux)
+* Easy to use (don't need to know regular expressions)
+* Work with any log file (not specific to any format)
 
 
 Similar tools
